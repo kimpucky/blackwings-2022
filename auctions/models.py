@@ -9,10 +9,10 @@ class User(AbstractUser):
     is_donor = models.BooleanField('donor status', default=False)
     pass
 
-# class Category(models.Model):
-#     category = models.CharField(max_length=64)
-#     def __str__(self):
-#         return f"{self.category}"
+class Category(models.Model):
+     category = models.CharField(max_length=64)
+     def __str__(self):
+         return f"{self.category}"
 
 class Listing(models.Model):
     donor = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sold_orders")
