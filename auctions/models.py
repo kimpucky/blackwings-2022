@@ -18,7 +18,7 @@ class Listing(models.Model):
     donor = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sold_orders")
     title = models.CharField(max_length=64)
     description = models.TextField()
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="items")
+    #category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="items")
     initialprice = models.DecimalField(max_digits=16, decimal_places=2,default=0)
     image_url = models.URLField(default="https://upload.wikimedia.org/wikipedia/commons/b/b1/Missing-image-232x150.png")
     sold = models.BooleanField(default=False)

@@ -11,8 +11,8 @@ from django import forms
 
 from .models import *
 
-# categories = Category.objects.all().values_list('category')
-# categories = [c[0] for c in categories]
+categories = Category.objects.all().values_list('category')
+categories = [c[0] for c in categories]
 
 
 def index(request):
@@ -28,20 +28,20 @@ def index(request):
         "watchlistIDs" : watchlistIDs
     })
 
-# def category(request, category):
-#     category = Category.objects.get(category=category)
-#     try:
-#         watchlist = Watchlist.objects.filter(user=request.user)
-#     except:
-#         watchlist = ''
-#     watchlistIDs = [l.listing.id for l in watchlist]
-#     listings = category.items.all().filter(sold=False)
-#     return render(request, "auctions/index.html", {
-#         "listings" : listings,
-#         #"categories" : categories,
-#         #"category" : category,
-#         "watchlistIDs" : watchlistIDs
-#     })
+def category(request, category):
+    category = Category.objects.get(category=category)
+    try:
+        watchlist = Watchlist.objects.filter(user=request.user)
+    except:
+        watchlist = ''
+    watchlistIDs = [l.listing.id for l in watchlist]
+    listings = category.items.all().filter(sold=False)
+    return render(request, "auctions/index.html", {
+        "listings" : listings,
+        #"categories" : categories,
+        #"category" : category,
+        "watchlistIDs" : watchlistIDs
+    })
     
 
 def login_view(request):
