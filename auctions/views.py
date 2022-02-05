@@ -11,8 +11,8 @@ from django import forms
 
 from .models import *
 
-categories = Category.objects.all().values_list('category')
-categories = [c[0] for c in categories]
+# categories = Category.objects.all().values_list('category')
+# categories = [c[0] for c in categories]
 
 
 def index(request):
@@ -24,24 +24,24 @@ def index(request):
 
     return render(request, "auctions/index.html", {
         "listings" : Listing.objects.filter(sold=False),
-        "categories" : categories,
+        # "categories" : categories,
         "watchlistIDs" : watchlistIDs
     })
 
-def category(request, category):
-    category = Category.objects.get(category=category)
-    try:
-        watchlist = Watchlist.objects.filter(user=request.user)
-    except:
-        watchlist = ''
-    watchlistIDs = [l.listing.id for l in watchlist]
-    listings = category.items.all().filter(sold=False)
-    return render(request, "auctions/index.html", {
-        "listings" : listings,
-        "categories" : categories,
-        "category" : category,
-        "watchlistIDs" : watchlistIDs
-    })
+# def category(request, category):
+#     category = Category.objects.get(category=category)
+#     try:
+#         watchlist = Watchlist.objects.filter(user=request.user)
+#     except:
+#         watchlist = ''
+#     watchlistIDs = [l.listing.id for l in watchlist]
+#     listings = category.items.all().filter(sold=False)
+#     return render(request, "auctions/index.html", {
+#         "listings" : listings,
+#         "categories" : categories,
+#         "category" : category,
+#         "watchlistIDs" : watchlistIDs
+#     })
     
 
 def login_view(request):
@@ -59,11 +59,11 @@ def login_view(request):
         else:
             return render(request, "auctions/login.html", {
                 "message": "Invalid username and/or password.",
-                "categories" : categories,
+                # "categories" : categories,
             })
     else:
         return render(request, "auctions/login.html", {
-            "categories" : categories,
+            # "categories" : categories,
         })
 
 
@@ -83,7 +83,7 @@ def register(request):
         if password != confirmation:
             return render(request, "auctions/register.html", {
                 "message": "Passwords must match.",
-                "categories" : categories
+                # "categories" : categories
             })
 
         # Attempt to create new user
@@ -93,42 +93,42 @@ def register(request):
         except IntegrityError:
             return render(request, "auctions/register.html", {
                 "message": "Username already taken.",
-                "categories" : categories
+                # "categories" : categories
             })
         login(request, user)
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "auctions/register.html", {
-            "categories" : categories
+            # "categories" : categories
         })
 
 @login_required
-def create(request):
+def donate(request):
     donor = request.user
     if request.method == "POST":
-        form = CreateForm(request.POST)
+        form = DonateForm(request.POST)
         if form.is_valid():
             title = str(form.cleaned_data["title"].title())
             description = str(form.cleaned_data["description"])
             imageurl = str(form.clean_field())
             price = form.cleaned_data["price"]
-            category_id = form.cleaned_data["category"]
-            category = Category.objects.get(pk=category_id)
+            # category_id = form.cleaned_data["category"]
+            # category = Category.objects.get(pk=category_id)
             creationdate = timezone.localtime()
-            listing = Listing(donor=donor, title = title, price = price, initialprice=price, description = description, image_url = imageurl, category=category, creationdate=creationdate)
+            listing = Listing(donor=donor, title = title, price = price, description = description, image_url = imageurl, creationdate=creationdate)
             listing.save()
             return HttpResponseRedirect(reverse("index"))
         else:
             errors = form.errors
-            return render(request, "auctions/create.html", {
-                "categories" : categories,
+            return render(request, "auctions/donate.html", {
+                # "categories" : categories,
                 "form" : form,
                 "error": errors
             })
     else:
-        return render(request, "auctions/create.html", {
-            "categories" : categories,
-            "form": CreateForm(),
+        return render(request, "auctions/donate.html", {
+            # "categories" : categories,
+            "form": DonateForm(),
             "donor" : donor
         })
 
@@ -146,7 +146,7 @@ def watchlist(request, listing_id=''):
         return render(request, "auctions/index.html", {
         "watchlistview" : watchlistview,
         "listings" : listings,
-        "categories" : categories,
+        # "categories" : categories,
         "watchlistIDs" : watchlistIDs
         })
     
@@ -188,7 +188,7 @@ def listing(request, listing_id):
     if request.user.is_authenticated == False:
         anonymous = True
         return render(request, "auctions/listing.html", {
-                "categories" : categories,
+                # "categories" : categories,
                 "listing" : listing,
                 "anonymous" : anonymous,
                 "comments" : comments
@@ -219,7 +219,7 @@ def listing(request, listing_id):
                
                 listing.save()
                 return render(request, "auctions/listing.html", {
-                    "categories" : categories,
+                    # "categories" : categories,
                     "listing" : listing,
                     "isOwner": isOwner,
                     "watchlistIDs" : watchlistIDs,
@@ -229,7 +229,7 @@ def listing(request, listing_id):
                 })
             else:
                 return render(request, "auctions/listing.html", {
-                    "categories" : categories,
+                    # "categories" : categories,
                     "listing" : listing,
                     "form" : form,
                     "isOwner": isOwner,
@@ -242,13 +242,14 @@ def listing(request, listing_id):
         else:
             anonymous = False
             return render(request, "auctions/listing.html", {
-                "categories" : categories,
+                # "categories" : categories,
                 "listing" : listing,
                 "watchlistIDs" : watchlistIDs,
                 "commentform" : commentform,
                 "comments" : comments,
                 "requestor" : requestor
                 })
+
 
 
 
@@ -264,11 +265,12 @@ def findPrice(listing_id):
         currentPrice = donorPrice
     return currentPrice
 
-class CreateForm(forms.Form):
+
+class DonateForm(forms.Form):
     title = forms.CharField(label="Title")
     description = forms.CharField(widget=forms.Textarea,label="Description")
     imageurl = forms.CharField(widget=forms.URLInput(), label = "Image URL", required=False)
-    category = forms.ChoiceField(widget=forms.Select, choices=Category.objects.all().values_list('id', 'category'), label="Category", )
+    # category = forms.ChoiceField(widget=forms.Select, choices=Category.objects.all().values_list('id', 'category'), label="Category", )
     price = forms.CharField(widget=forms.NumberInput(), label = "Price")
     def clean_field(self):
         data = self.cleaned_data['imageurl']

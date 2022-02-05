@@ -4,14 +4,14 @@
 <div class="container">
 
     <div class="row align-items-start">
-        <h1>Add New Listing</h1>
+        <h1>Add New Donation</h1>
     </div>
     <div class="row">
         <h4>Donor: {{donor}} </h4>
     </div>
 
     <div class="row">
-        <form action="{% url 'create' %}" method="post">
+        <form action="{% url 'donate' %}" method="post">
             {% csrf_token %}
 
             <!-- errors -->
