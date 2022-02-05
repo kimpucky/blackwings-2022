@@ -1,0 +1,48 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+<div class="container-fluid">
+    <div>
+        {%if watchlistview%}
+        <h2>Watchlist</h2>
+        {%else%}
+        <h2>Active Listings</h2>
+        {%endif%}
+    </div>
+    <div class="p-2">{% if category %}
+        <h5>Category: {{category}}</h5>
+        {% endif %}
+    </div>
+    {%for listing in listings%}
+    <div class="p-5">
+        <div class="row d-flex align-content-stretch">
+            <div class="ml-2 font-weight-bold"> <a href="{% url 'listing' listing.id%}">{{listing}}</a>
+                by
+                {{listing.seller}}. </div>
+        </div>
+        {% if user.is_authenticated %}
+
+        {% if not listing.id in watchlistIDs %}
+        <div class="row d-flex align-content-stretch">
+            <div class="ml-2"> Current Price:
+                ${{listing.price}} </div>
+            <div class="px-2"> <a href="{% url 'watchlist' listing.id%}"> Add to Watchlist </a> </div>
+        </div>
+        {%else%}
+        <div class="row d-flex align-content-stretch">
+            <div class="ml-2"> Current Price:
+                ${{listing.price}} </div>
+            <div class="ml-2"> <a href="{% url 'watchlist' listing.id%}"> Remove from Watchlist </a> </div>
+        </div>
+        {% endif %}
+
+        {% endif %}
+        <div class="row d-flex align-content-stretch">
+            <img class="previewImage" src="{{listing.image_url}}">
+        </div>
+    </div>
+    {%endfor%}
+</div>
+
+
+{% endblock %}

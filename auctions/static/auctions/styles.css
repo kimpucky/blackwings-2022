@@ -1,0 +1,123 @@
+body {
+    margin: 0;
+    background-color: white;
+}
+
+code {
+    white-space: pre;
+}
+
+h1 {
+    margin-top: 0px;
+    padding-top: 20px;
+}
+
+textarea {
+    height: 30vh;
+    width: 90%;
+}
+
+.comment {
+    display: flex;
+}
+
+textarea[name="comment"] {
+    display: flex;
+    margin-left: 50px;
+    margin-bottom: 20px;
+    height: 10vh;
+    width: 100%;
+    min-width: 100px;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+.main {
+    padding: 10px;
+}
+
+.row {
+    margin-right: 0px;
+    margin-left: 0px;
+}
+
+form {
+    display: flex;
+    box-sizing: border-box;
+}
+
+input {
+    box-sizing: border-box;
+    width: 90%;
+}
+
+.btn {
+    width: 150px;
+}
+
+.previewImage {
+    width: 55%;
+    height: auto;
+    min-width: 250px;
+    max-width: 750px;
+}
+
+.listingImage {
+    width: 100%;
+    height: auto;
+    min-width: 250px;
+    max-width: 2000px;
+}
+
+.soldButton {
+    display: flex;
+    align-items: center;
+    justify-content: left;
+}
+
+label {
+    margin: 0;
+}
+
+.dropbtn {
+    background-color: white;
+    color: #007bff;
+    padding: .5rem 1rem;
+    font-size: 1rem;
+    border: none;
+    cursor: pointer;
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    z-index: 1;
+}
+
+.dropdown-content a {
+    color: #007bff;
+    padding: 10px 10px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-content a:hover {
+    color: #0056b3;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown:hover .dropbtn {
+    background-color: white;
+    color: #0056b3;
+}
