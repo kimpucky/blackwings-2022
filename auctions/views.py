@@ -24,7 +24,7 @@ def index(request):
 
     return render(request, "auctions/index.html", {
         "listings" : Listing.objects.filter(sold=False),
-        # "categories" : categories,
+        #"categories" : categories,
         "watchlistIDs" : watchlistIDs
     })
 
@@ -38,8 +38,8 @@ def index(request):
 #     listings = category.items.all().filter(sold=False)
 #     return render(request, "auctions/index.html", {
 #         "listings" : listings,
-#         "categories" : categories,
-#         "category" : category,
+#         #"categories" : categories,
+#         #"category" : category,
 #         "watchlistIDs" : watchlistIDs
 #     })
     
@@ -121,14 +121,14 @@ def donate(request):
         else:
             errors = form.errors
             return render(request, "auctions/donate.html", {
-                # "categories" : categories,
+                #"categories" : categories,
                 "form" : form,
                 "error": errors
             })
     else:
         return render(request, "auctions/donate.html", {
-            # "categories" : categories,
-            "form": DonateForm(),
+            #"categories" : categories,
+            #"form": DonateForm(),
             "donor" : donor
         })
 
@@ -255,7 +255,7 @@ def listing(request, listing_id):
 
 def findPrice(listing_id):
     listing = Listing.objects.get(id=listing_id)
-    donorPrice = listing.initialprice
+    donorPrice = listing.price
     bids = listing.bids.all().order_by("-biddate")
     #get latest price
     try:
