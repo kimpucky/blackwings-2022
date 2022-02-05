@@ -18,20 +18,17 @@
         <div class="row d-flex align-content-stretch">
             <div class="ml-2 font-weight-bold"> <a href="{% url 'listing' listing.id%}">{{listing}}</a>
                 by
-                {{listing.seller}}. </div>
+                {{listing.donor}}. </div>
         </div>
         {% if user.is_authenticated %}
 
         {% if not listing.id in watchlistIDs %}
         <div class="row d-flex align-content-stretch">
-            <div class="ml-2"> Current Price:
-                ${{listing.price}} </div>
+            
             <div class="px-2"> <a href="{% url 'watchlist' listing.id%}"> Add to Watchlist </a> </div>
         </div>
         {%else%}
         <div class="row d-flex align-content-stretch">
-            <div class="ml-2"> Current Price:
-                ${{listing.price}} </div>
             <div class="ml-2"> <a href="{% url 'watchlist' listing.id%}"> Remove from Watchlist </a> </div>
         </div>
         {% endif %}

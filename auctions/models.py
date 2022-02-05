@@ -13,7 +13,7 @@ class Category(models.Model):
         return f"{self.category}"
 
 class Listing(models.Model):
-    seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sold_orders")
+    donor = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sold_orders")
     title = models.CharField(max_length=64)
     description = models.TextField()
     initialprice = models.DecimalField(max_digits=16, decimal_places=2)
@@ -21,7 +21,7 @@ class Listing(models.Model):
     image_url = models.URLField(default="https://upload.wikimedia.org/wikipedia/commons/b/b1/Missing-image-232x150.png")
     sold = models.BooleanField(default=False)
     price = models.DecimalField(max_digits=16, decimal_places=2)
-    buyer = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null= True, related_name="bought_orders")
+    requestor = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null= True, related_name="bought_orders")
     creationdate = models.DateTimeField(default=datetime.datetime(2021, 9, 29, 1, 50, 16, 283956))
     enddate = models.DateTimeField(blank=True, null=True)
     def __str__(self):

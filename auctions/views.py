@@ -104,7 +104,7 @@ def register(request):
 
 @login_required
 def create(request):
-    seller = request.user
+    donor = request.user
     if request.method == "POST":
         form = CreateForm(request.POST)
         if form.is_valid():
@@ -115,7 +115,7 @@ def create(request):
             category_id = form.cleaned_data["category"]
             category = Category.objects.get(pk=category_id)
             creationdate = timezone.localtime()
-            listing = Listing(seller=seller, title = title, price = price, initialprice=price, description = description, image_url = imageurl, category=category, creationdate=creationdate)
+            listing = Listing(donor=donor, title = title, price = price, initialprice=price, description = description, image_url = imageurl, category=category, creationdate=creationdate)
             listing.save()
             return HttpResponseRedirect(reverse("index"))
         else:
@@ -129,7 +129,7 @@ def create(request):
         return render(request, "auctions/create.html", {
             "categories" : categories,
             "form": CreateForm(),
-            "seller" : seller
+            "donor" : donor
         })
 
 
@@ -168,13 +168,10 @@ def watchlist(request, listing_id=''):
 
 
 def listing(request, listing_id):
-    buyer=False
+    requestor=False
     listing = Listing.objects.get(id=listing_id)
-    bids = listing.bids.all().order_by("-biddate")
     comments = listing.comments.all().order_by("commentdate")
-    price = findPrice(listing_id)
     form = SoldForm()
-    bidform = BidForm()
     commentform = CommentForm()
     try:
         watchlist = Watchlist.objects.filter(user=request.user)
@@ -182,10 +179,10 @@ def listing(request, listing_id):
         watchlist = ''
     watchlistIDs = [l.listing.id for l in watchlist]
     if listing.sold == True:
-        if listing.buyer == request.user:
-            buyer = True
+        if listing.requestor == request.user:
+            requestor = True
         else:
-            buyer = False
+            requestor = False
 
     #if user is not logged in, shows text that user needs to be logged in to bid
     if request.user.is_authenticated == False:
@@ -193,14 +190,12 @@ def listing(request, listing_id):
         return render(request, "auctions/listing.html", {
                 "categories" : categories,
                 "listing" : listing,
-                "currentPrice" : price,
                 "anonymous" : anonymous,
-                "bids" : bids,
                 "comments" : comments
             })
     #else authenticated users, split into owner of listing and not owner of listing
     else:
-        if request.user == listing.seller:
+        if request.user == listing.donor:
             isOwner = True
         else:
             isOwner = False
@@ -220,23 +215,17 @@ def listing(request, listing_id):
                 if soldValue == 'on':
                     sold = True
                 listing.sold = sold
-                listing.price = price
                 listing.enddate = timezone.localtime()
-                try:
-                    listing.buyer = bids[0].user
-                except:
-                    listing.buyer = None
+               
                 listing.save()
                 return render(request, "auctions/listing.html", {
                     "categories" : categories,
                     "listing" : listing,
                     "isOwner": isOwner,
-                    "currentPrice" : price,
-                    "bids" : bids,
                     "watchlistIDs" : watchlistIDs,
                     "commentform" : commentform,
                     "comments" : comments,
-                    "buyer" : buyer
+                    "requestor" : requestor
                 })
             else:
                 return render(request, "auctions/listing.html", {
@@ -244,69 +233,35 @@ def listing(request, listing_id):
                     "listing" : listing,
                     "form" : form,
                     "isOwner": isOwner,
-                    "currentPrice" : price,
-                    "bids" : bids,
                     "watchlistIDs" : watchlistIDs,
                     "commentform" : commentform,
                     "comments" : comments,
-                    "buyer" : buyer
+                    "requestor" : requestor
                 })
-        #if listing is viewed by a user who is not the seller, show bidding options
+        #if listing is viewed by a user who is not the donor, show request options
         else:
             anonymous = False
-            if (request.method == "POST" and 'bidsubmit' in request.POST):
-                bidform = BidForm(request.POST)
-                is_valid = bidform.is_valid()
-                is_valid = is_valid and bidform.validate_price(price)
-                if is_valid:
-                    price = bidform.get_price()
-                    listing.price = price
-                    listing.save()
-                    bidder = request.user
-                    biddate = timezone.localtime()
-                    newbid = Bid(user=bidder, listing = listing, price = price, biddate = biddate)
-                    newbid.save()
-                    bids = listing.bids.all().order_by("-biddate")
-                else:
-                    errors = bidform.errors
-                    for error in errors.values():
-                        errorMessage = ' '.join(error)
-                    return render(request, "auctions/listing.html", {
-                        "categories" : categories,
-                        "listing" : listing,
-                        "currentPrice" : price,
-                        "bidform" : bidform,
-                        "bids" : bids,
-                        "errors" : errorMessage,
-                        "watchlistIDs" : watchlistIDs,
-                        "commentform" : commentform,
-                        "comments" : comments,
-                        "buyer" : buyer
-                    })
             return render(request, "auctions/listing.html", {
                 "categories" : categories,
                 "listing" : listing,
-                "currentPrice" : price,
-                "bidform" : bidform,
-                "bids" : bids,
                 "watchlistIDs" : watchlistIDs,
                 "commentform" : commentform,
                 "comments" : comments,
-                "buyer" : buyer
+                "requestor" : requestor
                 })
 
 
 
 def findPrice(listing_id):
     listing = Listing.objects.get(id=listing_id)
-    sellerPrice = listing.initialprice
+    donorPrice = listing.initialprice
     bids = listing.bids.all().order_by("-biddate")
     #get latest price
     try:
-        if (bids[0].price > sellerPrice):
+        if (bids[0].price > donorPrice):
             currentPrice = bids[0].price
     except:
-        currentPrice = sellerPrice
+        currentPrice = donorPrice
     return currentPrice
 
 class CreateForm(forms.Form):
@@ -325,25 +280,6 @@ class CreateForm(forms.Form):
 
 class SoldForm(forms.Form):
     sold = forms.BooleanField(label="Sold?")
-
-class BidForm(forms.Form):
-    price = forms.CharField(widget=forms.NumberInput(), label = "New Bid")
-
-    def validate_price(self, current_listing_price):
-        cleaned_data = super().clean()
-        bid = cleaned_data.get('price')
-        #how to pass in the request listing_id into the form to validate?
-        # currentPrice = findPrice(self.listing_id)
-        if (float(bid) <= current_listing_price):
-            self.add_error("price", "Your bid should be more than the current price of ${}".format(current_listing_price))
-            return False
-        return True
-    
-    def get_price(self):
-        cleaned_data = super().clean()
-        return cleaned_data.get('price')
-
-    error_css_class = 'error'
 
 class CommentForm(forms.Form):
     comment = forms.CharField(widget=forms.Textarea, label="Add Comment")

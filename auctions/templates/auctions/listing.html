@@ -6,7 +6,7 @@
         <h2>Listing: {{listing.title}}</h2>
     </div>
 
-    {%if buyer%}
+    {%if requestor%}
     <div class="text-center">
         <h2>You won the auction!</h2>
     </div>
@@ -64,24 +64,19 @@
     </div>
     {%endif%}
 
-    <div>
-        {%for bid in bids%}
-        <ul>{{bid.user}} bidded ${{bid.price}} at {{bid.biddate}}</ul>
-        {%endfor%}
-    </div>
 
     <div>
-        <h4>Seller:</h4>
-        <ul>Listed by {{listing.seller}} for ${{listing.price}} at {{listing.creationdate}}</ul>
+        <h4>Donor:</h4>
+        <ul>Listed by {{listing.donor}} for ${{listing.price}} at {{listing.creationdate}}</ul>
     </div>
 
     {%if listing.sold%}
     <div>
-        <h4>Buyer:</h4>
-        {%if listing.buyer == None%}
-        <ul>This item was removed by the seller. The auction closed at {{listing.enddate}}</ul>
+        <h4>Requestor:</h4>
+        {%if listing.requestor == None%}
+        <ul>This item was removed by the donor. The auction closed at {{listing.enddate}}</ul>
         {%else%}
-        <ul>This item was bought by {{listing.buyer}} for ${{listing.price}}. The auction closed at {{listing.enddate}}
+        <ul>This item was bought by {{listing.requestor}} for ${{listing.price}}. The auction closed at {{listing.enddate}}
         </ul>
         {%endif%}
     </div>
