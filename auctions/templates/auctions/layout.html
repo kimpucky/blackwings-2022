@@ -11,15 +11,21 @@
 </head>
 
 <body>
-    <div class="container">
-        <h1>Give Directly</h1>
-        <div>
-            {% if user.is_authenticated %}
-            Signed in as <strong>{{ user.username }}</strong>.
-            {% else %}
-            Not signed in.
-            {% endif %}
+    <div class="container-fluid">
+        <div class="container-fluid">
+            <div ><img src="{% static 'giveicon.png'%}" alt="giving-icon">
+                <h1>Give Directly</h1></div>
+            <div>
+                {% if user.is_authenticated %}
+                Signed in as <strong>{{ user.username }}</strong>.
+                {% else %}
+                Not signed in.
+                {% endif %}
+            </div>
         </div>
+        
+        
+
         <nav class="navbar navbar-expand-lg navbar-light">
             <ul class="nav nav-pills nav-fill justify-content-center">
                 <li class="nav-item">

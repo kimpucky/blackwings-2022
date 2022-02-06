@@ -433,18 +433,15 @@ def requesting(request, requesting_id):
     donor=False
     requesting = Requesting.objects.get(id=requesting_id)
     comments = requesting.requestcomments.all().order_by("commentdate")
-    form = SoldForm()
+    form = ExpireRequestForm()
     commentform = CommentForm()
-    try:
-        watchlist = Watchlist.objects.filter(user=request.user)
-    except:
-        watchlist = ''
-    watchlistIDs = [l.listing.id for l in watchlist]
+    matchform = DonorMatch()
+
     if requesting.sold == True:
         if requesting.donor == request.user:
-            requestor = True
+            donor = True
         else:
-            requestor = False
+            donor = False
 
     #if user is not logged in, shows text that user needs to be logged in to bid
     if request.user.is_authenticated == False:
@@ -462,6 +459,12 @@ def requesting(request, requesting_id):
             isOwner = True
         else:
             isOwner = False
+        
+        if request.user.profile.is_donor == True:
+            is_donor = True
+        else:
+            is_donor = False
+
         if (request.method == "POST" and 'commentsubmit' in request.POST):
             commentform = CommentForm(request.POST)
             commenttext = str(commentform.data["comment"])
@@ -485,10 +488,9 @@ def requesting(request, requesting_id):
                     "requestorcategory" : get_request_categories(),
                     "requesting" : requesting,
                     "isOwner": isOwner,
-                    "watchlistIDs" : watchlistIDs,
                     "commentform" : commentform,
                     "comments" : comments,
-                    "requestor" : requestor
+                    "donor" : donor
                 })
             else:
                 form = ExpireRequestForm()
@@ -498,22 +500,43 @@ def requesting(request, requesting_id):
                     "requesting" : requesting,
                     "form" : form,
                     "isOwner": isOwner,
-                    "watchlistIDs" : watchlistIDs,
                     "commentform" : commentform,
                     "comments" : comments,
                 })
         #if requesting is viewed by a user who is not the donor, show request options
         else:
             anonymous = False
-            return render(request, "auctions/requesting.html", {
-                "categories" : get_categories(),
-                "requestorcategory" : get_request_categories(),
-                "requesting" : requesting,
-                "watchlistIDs" : watchlistIDs,
-                "commentform" : commentform,
-                "comments" : comments,
-                "requestor" : requestor
-                })
+            if is_donor:
+                matchform = DonorMatch()
+                if (request.method == "POST" and 'matchsubmit' in request.POST):
+                    matchform = DonorMatch(request.POST)
+                    matchValue = matchform.data["match"]
+                    if matchValue == 'on':
+                        match = True
+                    requesting.sold = True
+                    requesting.requestor = request.user
+                    requesting.enddate = timezone.localtime() 
+                    requesting.save()
+                    return render(request, "auctions/requesting.html", {
+                        "categories" : get_categories(),
+                        "requestorcategory" : get_request_categories(),
+                        "requesting" : requesting,
+                        "matchform" : matchform,
+                        "is_donor": is_donor,
+                        "commentform" : commentform,
+                        "comments" : comments,
+                        "donor" : donor
+                    })
+                return render(request, "auctions/requesting.html", {
+                        "categories" : get_categories(),
+                        "requestorcategory" : get_request_categories(),
+                        "requesting" : requesting,
+                        "matchform" : matchform,
+                        "is_donor": is_donor,
+                        "commentform" : commentform,
+                        "comments" : comments,
+                        "donor" : donor
+                    })
 
 def findPrice(listing_id):
     listing = Listing.objects.get(id=listing_id)

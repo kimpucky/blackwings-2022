@@ -6,23 +6,24 @@
         <h2>Listing: {{requesting.title}}</h2>
     </div>
 
-    {%if requestor%}
+    {%if donor%}
     <div class="text-center">
-        <h2>You won the auction!</h2>
+        <h2>You donated the item!</h2>
     </div>
     {%endif%}
 
-    <div class="text-right">
-        {% if user.is_authenticated%}
-        {% if not requesting.id in watchlistIDs %}
-        <h5><a href="{% url 'watchlist' requesting.id%}"> Add to Watchlist </a></h5>
-        {%else%}
-        <h5><a href="{% url 'watchlist' requesting.id%}"> Remove from Watchlist </a> </h5>
-        {% endif %}
-        {% endif %}
-    </div>
 
+    
+    
+    
+    
+    
+    
+    
+    
 
+    
+    
     <div>
         <h4>Image:</h4>
         <ul><img class="listingImage" src="{{requesting.image_url}}"></ul>
@@ -38,18 +39,18 @@
     <div class="alert alert-danger">{{errors}}</div>
     {%endif%}
 
-    <div>
-        <form action="{% url 'requesting' requesting.id%}" method="post">
-            {% csrf_token %}
-            {% for field in bidform %}
-            <h4> {{ field.label_tag }} </h4>
-            <div class="col-3 soldButton align-self-center"> {{ field }} </div>
-            <div> <input type="submit" name="bidsubmit" value="Submit" class="btn btn-link">
-            </div>
-        </form>
-    </div>
-    {% endfor %}
+    
+
+
+
+
+
+
+
     {%endif%}
+
+
+
 
     {% if anonymous and not requesting.sold%}
     <div>
@@ -78,6 +79,7 @@
     {%endif%}
 
     {%if not requesting.sold%}
+
     <div class="row justify-content-left">
         {% if isOwner %}
         <form action="{% url 'requesting' requesting.id%}" method="post" class="justify-content-left">
@@ -92,6 +94,27 @@
             {% endfor %}
             <div class="col-2 align-self-center m-0 p-0">
                 <input type="submit" name="soldsubmit" class="btn btn-link">
+            </div>
+        </form>
+        {%endif%}
+    </div>
+    {%endif%}
+
+    {%if not requesting.sold%}
+    <div class="row justify-content-left">
+        {% if is_donor %}
+        <form action="{% url 'requesting' requesting.id%}" method="post" class="justify-content-left">
+            {% csrf_token %}
+            {% for field in matchform %}
+            <div class="col-3 align-self-center my-0">
+                <h4>{{ field.label_tag }} </h4>
+            </div>
+            <div class="col-5 soldButton align-self-center">
+                {{ field }}
+            </div>
+            {% endfor %}
+            <div class="col-2 align-self-center m-0 p-0">
+                <input type="submit" name="matchsubmit" class="btn btn-link">
             </div>
         </form>
         {%endif%}
