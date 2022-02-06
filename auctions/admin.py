@@ -10,7 +10,7 @@ admin.site.register(Listing)
 admin.site.register(Requesting)
 admin.site.register(Category)
 admin.site.register(RequestorCategory)
-admin.site.register(Bid)
+#admin.site.register(Bid)
 
 @admin.register(Watchlist)
 class WatchlistAdmin(admin.ModelAdmin):
