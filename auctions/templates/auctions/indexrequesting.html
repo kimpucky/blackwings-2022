@@ -21,20 +21,7 @@
                 by
                 {{requesting.requestor}}. </div>
         </div>
-        {% if user.is_authenticated %}
-
-        {% if not requesting.id in watchlistIDs %}
-        <div class="row d-flex align-content-stretch">
-            
-            <div class="px-2"> <a href="{% url 'watchlist' requesting.id%}"> Add to Watchlist </a> </div>
-        </div>
-        {%else%}
-        <div class="row d-flex align-content-stretch">
-            <div class="ml-2"> <a href="{% url 'watchlist' requesting.id%}"> Remove from Watchlist </a> </div>
-        </div>
-        {% endif %}
-
-        {% endif %}
+ 
         <div class="row d-flex align-content-stretch">
             <img class="previewImage" src="{{requesting.image_url}}">
         </div>
