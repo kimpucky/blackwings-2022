@@ -49,6 +49,10 @@
                     </div>
                 </li>
 
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'matchedview' %}">Matched</a>
+                </li>
+
                 {% if user.is_authenticated%}
                
                 {% if user.profile.is_donor%}
@@ -62,7 +66,7 @@
                     <a class="nav-link" href="{% url 'askfordonation' %}">Add Request</a>
                 </li>
                 {% endif %}
-                
+
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'watchlist' %}">Watchlist</a>
                 </li>

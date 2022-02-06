@@ -55,6 +55,13 @@ def indexrequesting(request):
         "watchlistIDs" : watchlistIDs
     })
 
+def matchedview(request):
+    return render(request, "auctions/matchedview.html", {
+        "listings" : Listing.objects.filter(sold=True),
+        "requestings" : Requesting.objects.filter(sold=True),
+        "categories" : get_categories(),
+        "requestorcategory": get_request_categories(),
+    })
 
 def category(request, category):
     category = Category.objects.get(category=category)

@@ -1,0 +1,45 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+<div class="container-fluid">
+    <div>
+        <h2>Matched Donations</h2>
+    </div>
+    <div class="p-2">{% if category %}
+        <h5>Category: {{category}}</h5>
+        {% endif %}
+    </div>
+
+
+    {%for listing in listings%}
+    <div class="p-5">
+        <div class="row d-flex align-content-stretch">
+            <div class="ml-2 font-weight-bold"> <a href="{% url 'listing' listing.id%}">{{listing}}</a>
+                by
+                {{listing.donor}}. </div>
+        </div>
+        
+        <div class="row d-flex align-content-stretch">
+            <img class="previewImage" src="{{listing.image_url}}">
+        </div>
+    </div>
+    {%endfor%}
+
+    {%for requesting in requestings%}
+    <div class="p-5">
+        <div class="row d-flex align-content-stretch">
+            <div class="ml-2 font-weight-bold"> <a href="{% url 'requesting' requesting.id%}">{{requesting}}</a>
+                by
+                {{requesting.requestor}}. </div>
+        </div>
+
+        <div class="row d-flex align-content-stretch">
+            <img class="previewImage" src="{{requesting.image_url}}">
+        </div>
+    </div>
+    {%endfor%}
+
+</div>
+
+
+{% endblock %}
