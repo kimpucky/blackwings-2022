@@ -31,11 +31,10 @@ def indexlisting(request):
         watchlist = Watchlist.objects.filter(user=request.user)
     except:
         watchlist = ''
-    watchlistIDs = [l.listing.id for l in watchlist]
+    watchlistIDs = [l.requestings.id for l in watchlist]
 
     return render(request, "auctions/index.html", {
         "listings" : Listing.objects.filter(sold=False),
-        "requestings" : Requesting.objects.filter(sold=False),
         "categories" : get_categories(),
         "requestorcategory": get_request_categories(),
         "watchlistIDs" : watchlistIDs
