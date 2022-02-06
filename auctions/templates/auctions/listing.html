@@ -8,7 +8,7 @@
 
     {%if requestor%}
     <div class="text-center">
-        <h2>You won the auction!</h2>
+        <h2>You got the item!</h2>
     </div>
     {%endif%}
 
@@ -33,10 +33,6 @@
         <ul>{{listing.description}}</ul>
     </div>
 
-    <div>
-        <h4>Price:</h4>
-        <ul>${{currentPrice}}</ul>
-    </div>
 
     {% if not isOwner and not anonymous and not listing.sold%}
     {% if bidform.errors %}
@@ -59,7 +55,7 @@
     {% if anonymous and not listing.sold%}
     <div>
         <a href="{% url 'login' %}">
-            <h4>Log in to bid</h4>
+            <h4>Log in to request this item</h4>
         </a>
     </div>
     {%endif%}
@@ -67,22 +63,23 @@
 
     <div>
         <h4>Donor:</h4>
-        <ul>Listed by {{listing.donor}} for ${{listing.price}} at {{listing.creationdate}}</ul>
+        <ul>Listed by {{listing.donor}} at {{listing.creationdate}}</ul>
     </div>
 
     {%if listing.sold%}
     <div>
         <h4>Requestor:</h4>
         {%if listing.requestor == None%}
-        <ul>This item was removed by the donor. The auction closed at {{listing.enddate}}</ul>
+        <ul>This item was removed by the donor. The listing closed at {{listing.enddate}}</ul>
         {%else%}
-        <ul>This item was bought by {{listing.requestor}} for ${{listing.price}}. The auction closed at {{listing.enddate}}
+        <ul>This item was requested by {{listing.requestor}} and no longer available. The listing closed at {{listing.enddate}}
         </ul>
         {%endif%}
     </div>
     {%endif%}
 
     {%if not listing.sold%}
+    
     <div class="row justify-content-left">
         {% if isOwner %}
         <form action="{% url 'listing' listing.id%}" method="post" class="justify-content-left">
@@ -97,6 +94,27 @@
             {% endfor %}
             <div class="col-2 align-self-center m-0 p-0">
                 <input type="submit" name="soldsubmit" class="btn btn-link">
+            </div>
+        </form>
+        {%endif%}
+    </div>
+    {%endif%}
+
+    {%if not listing.sold%}
+    <div class="row justify-content-left">
+        {% if is_requestor %}
+        <form action="{% url 'listing' listing.id%}" method="post" class="justify-content-left">
+            {% csrf_token %}
+            {% for field in matchform %}
+            <div class="col-3 align-self-center my-0">
+                <h4>{{ field.label_tag }} </h4>
+            </div>
+            <div class="col-5 soldButton align-self-center">
+                {{ field }}
+            </div>
+            {% endfor %}
+            <div class="col-2 align-self-center m-0 p-0">
+                <input type="submit" name="matchsubmit" class="btn btn-link">
             </div>
         </form>
         {%endif%}

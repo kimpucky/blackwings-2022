@@ -31,7 +31,7 @@ def indexlisting(request):
         watchlist = Watchlist.objects.filter(user=request.user)
     except:
         watchlist = ''
-    watchlistIDs = [l.requestings.id for l in watchlist]
+    watchlistIDs = [l.listing.id for l in watchlist]
 
     return render(request, "auctions/index.html", {
         "listings" : Listing.objects.filter(sold=False),
@@ -261,6 +261,10 @@ def askfordonation(request):
             "requestor" : requestor
         })
 
+def add_to_watchlist(request, listing_id):
+    add_listing = Watchlist(user=request.user, listing_id=listing_id)
+    add_listing.save()
+
 @login_required
 def watchlist(request, listing_id=''):
     user = request.user
@@ -279,7 +283,7 @@ def watchlist(request, listing_id=''):
         "watchlistIDs" : watchlistIDs
         })
     
-    print(listing_id)
+
     listing = Listing.objects.get(id=listing_id)
 
     #if user clicks on remove from watch list, this is the delete flow
@@ -302,11 +306,15 @@ def listing(request, listing_id):
     comments = listing.comments.all().order_by("commentdate")
     form = SoldForm()
     commentform = CommentForm()
+    matchform = RequestorMatch()
+
     try:
         watchlist = Watchlist.objects.filter(user=request.user)
     except:
         watchlist = ''
+        
     watchlistIDs = [l.listing.id for l in watchlist]
+    
     if listing.sold == True:
         if listing.requestor == request.user:
             requestor = True
@@ -323,12 +331,19 @@ def listing(request, listing_id):
                 "anonymous" : anonymous,
                 "comments" : comments
             })
+
     #else authenticated users, split into owner of listing and not owner of listing
     else:
         if request.user == listing.donor:
             isOwner = True
         else:
             isOwner = False
+
+        if request.user.profile.is_requestor == True:
+            is_requestor = True
+        else:
+            is_requestor = False
+        
         if (request.method == "POST" and 'commentsubmit' in request.POST):
             commentform = CommentForm(request.POST)
             commenttext = str(commentform.data["comment"])
@@ -337,7 +352,7 @@ def listing(request, listing_id):
             newcomment.save()
             commentform = CommentForm()
         
-        #if listing is viewed by the owner, show sold checkbox to take listing off the market but no bidding
+        #if listing is viewed by the owner, show sold checkbox to take listing off the market
         if isOwner:
             if (request.method == "POST" and 'soldsubmit' in request.POST):
                 form = SoldForm(request.POST)
@@ -346,7 +361,6 @@ def listing(request, listing_id):
                     sold = True
                 listing.sold = sold
                 listing.enddate = timezone.localtime()
-               
                 listing.save()
                 return render(request, "auctions/listing.html", {
                     "categories" : get_categories(),
@@ -370,18 +384,43 @@ def listing(request, listing_id):
                     "comments" : comments,
                     "requestor" : requestor
                 })
+        
         #if listing is viewed by a user who is not the donor, show request options
         else:
             anonymous = False
-            return render(request, "auctions/listing.html", {
-                "categories" : get_categories(),
-                "requestorcategory" : get_request_categories(),
-                "listing" : listing,
-                "watchlistIDs" : watchlistIDs,
-                "commentform" : commentform,
-                "comments" : comments,
-                "requestor" : requestor
-                })
+            if is_requestor:
+                matchform = RequestorMatch()
+                if (request.method == "POST" and 'matchsubmit' in request.POST):
+                    matchform = RequestorMatch(request.POST)
+                    matchValue = matchform.data["match"]
+                    if matchValue == 'on':
+                        match = True
+                    listing.sold = True
+                    listing.requestor = request.user
+                    listing.enddate = timezone.localtime() 
+                    listing.save()
+                    return render(request, "auctions/listing.html", {
+                        "categories" : get_categories(),
+                        "requestorcategory" : get_request_categories(),
+                        "listing" : listing,
+                        "watchlistIDs" : watchlistIDs,
+                        "matchform" : matchform,
+                        "is_requestor": is_requestor,
+                        "commentform" : commentform,
+                        "comments" : comments,
+                        "requestor" : requestor
+                    })
+                return render(request, "auctions/listing.html", {
+                        "categories" : get_categories(),
+                        "requestorcategory" : get_request_categories(),
+                        "listing" : listing,
+                        "watchlistIDs" : watchlistIDs,
+                        "matchform" : matchform,
+                        "is_requestor": is_requestor,
+                        "commentform" : commentform,
+                        "comments" : comments,
+                        "requestor" : requestor
+                    })
 
 def requesting(request, requesting_id):
     donor=False
