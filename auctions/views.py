@@ -21,6 +21,11 @@ def get_categories():
     categories = [c[0] for c in categories]
     return categories
 
+def get_request_categories():
+    requestorcategories = RequestorCategory.objects.all().values_list('category')
+    requestorcategories = [c[0] for c in requestorcategories]
+    return requestorcategories
+
 def index(request):
     try:
         watchlist = Watchlist.objects.filter(user=request.user)
@@ -31,6 +36,7 @@ def index(request):
     return render(request, "auctions/index.html", {
         "listings" : Listing.objects.filter(sold=False),
         "categories" : get_categories(),
+        "requestorcategory": get_request_categories(),
         "watchlistIDs" : watchlistIDs
     })
 
@@ -44,6 +50,23 @@ def category(request, category):
     listings = category.items.all().filter(sold=False)
     return render(request, "auctions/index.html", {
         "listings" : listings,
+        "categories" : get_categories(),
+        "requestorcategory" : get_request_categories(),
+        "category" : category,
+        "watchlistIDs" : watchlistIDs
+    })
+
+def requestorcategory(request, category):
+    category = RequestorCategory.objects.get(category=category)
+    try:
+        watchlist = Watchlist.objects.filter(user=request.user)
+    except:
+        watchlist = ''
+    watchlistIDs = [l.listing.id for l in watchlist]
+    requestings = category.request_items.all().filter(sold=False)
+    return render(request, "auctions/index.html", {
+        "listings" : requestings,
+        "requestorcategory" : get_request_categories(),
         "categories" : get_categories(),
         "category" : category,
         "watchlistIDs" : watchlistIDs
@@ -65,11 +88,14 @@ def login_view(request):
         else:
             return render(request, "auctions/login.html", {
                 "message": "Invalid username and/or password.",
-                 "categories" : get_categories(),
+                "categories" : get_categories(),
+                "requestorcategory" : get_request_categories(),
             })
     else:
         return render(request, "auctions/login.html", {
             "categories" : get_categories(),
+            "requestorcategory" : get_request_categories(),
+
         })
 
 
@@ -169,16 +195,55 @@ def donate(request):
             errors = form.errors
             return render(request, "auctions/donate.html", {
                 "categories" : get_categories(),
+                "requestorcategory" : get_request_categories(),
                 "form" : form,
                 "error": errors
             })
     else:
         return render(request, "auctions/donate.html", {
             "categories" : get_categories(),
+            "requestorcategory" : get_request_categories(),
             "form": DonateForm(),
             "donor" : donor
         })
 
+@login_required
+def askfordonation(request):
+    requestor = request.user
+    if request.method == "POST":
+        form = RequestForm(request.POST)
+        if form.is_valid():
+            title = str(form.cleaned_data["title"].title())
+            description = str(form.cleaned_data["description"])
+            imageurl = str(form.clean_field())
+            requestorcategory_id = form.cleaned_data["requestorcategory"]
+            id = int(requestorcategory_id)
+            requestorcategory = RequestorCategory.objects.get(pk=id)
+            creationdate = timezone.localtime()
+            requestlisting = Requesting(
+                requestor=requestor,
+                title = title,
+                description = description,
+                requestorcategory=requestorcategory,
+                image_url = imageurl,
+                creationdate=creationdate)
+            requestlisting.save()
+            return HttpResponseRedirect(reverse("index"))
+        else:
+            errors = form.errors
+            return render(request, "auctions/askfordonation.html", {
+                "categories" : get_categories(),
+                "requestorcategory" : get_request_categories(),
+                "form" : form,
+                "error": errors
+            })
+    else:
+        return render(request, "auctions/askfordonation.html", {
+            "categories" : get_categories(),
+            "requestorcategory" : get_request_categories(),
+            "form": RequestForm(),
+            "requestor" : requestor
+        })
 
 @login_required
 def watchlist(request, listing_id=''):
@@ -194,6 +259,7 @@ def watchlist(request, listing_id=''):
         "watchlistview" : watchlistview,
         "listings" : listings,
         "categories" : get_categories(),
+        "requestorcategory" : get_request_categories(),
         "watchlistIDs" : watchlistIDs
         })
     
@@ -236,6 +302,7 @@ def listing(request, listing_id):
         anonymous = True
         return render(request, "auctions/listing.html", {
                 "categories" : get_categories(),
+                "requestorcategory" : get_request_categories(),
                 "listing" : listing,
                 "anonymous" : anonymous,
                 "comments" : comments
@@ -267,6 +334,7 @@ def listing(request, listing_id):
                 listing.save()
                 return render(request, "auctions/listing.html", {
                     "categories" : get_categories(),
+                    "requestorcategory" : get_request_categories(),
                     "listing" : listing,
                     "isOwner": isOwner,
                     "watchlistIDs" : watchlistIDs,
@@ -277,6 +345,7 @@ def listing(request, listing_id):
             else:
                 return render(request, "auctions/listing.html", {
                     "categories" : get_categories(),
+                    "requestorcategory" : get_request_categories(),
                     "listing" : listing,
                     "form" : form,
                     "isOwner": isOwner,
@@ -290,6 +359,7 @@ def listing(request, listing_id):
             anonymous = False
             return render(request, "auctions/listing.html", {
                 "categories" : get_categories(),
+                "requestorcategory" : get_request_categories(),
                 "listing" : listing,
                 "watchlistIDs" : watchlistIDs,
                 "commentform" : commentform,
@@ -316,7 +386,20 @@ class DonateForm(forms.Form):
     description = forms.CharField(widget=forms.Textarea,label="Description")
     imageurl = forms.CharField(widget=forms.URLInput(), label = "Image URL", required=False)
     category = forms.ChoiceField(widget=forms.Select, choices=lambda: Category.objects.all().values_list('id', 'category'), label="Category", )
-    price = forms.CharField(widget=forms.NumberInput(), label = "Price")
+    price = forms.CharField(widget=forms.NumberInput(), label = "Estimated Donation Value")
+    def clean_field(self):
+        data = self.cleaned_data['imageurl']
+        if data == '':
+            data = 'https://upload.wikimedia.org/wikipedia/commons/b/b1/Missing-image-232x150.png'
+        return data
+    error_css_class = 'error'
+    required_css_class = 'font-weight-bold'
+
+class RequestForm(forms.Form):
+    title = forms.CharField(label="Title")
+    description = forms.CharField(widget=forms.Textarea,label="Description")
+    imageurl = forms.CharField(widget=forms.URLInput(), label = "Image URL", required=False)
+    requestorcategory = forms.ChoiceField(widget=forms.Select, choices=lambda: RequestorCategory.objects.all().values_list('id', 'category'), label="Category", )
     def clean_field(self):
         data = self.cleaned_data['imageurl']
         if data == '':
@@ -326,7 +409,17 @@ class DonateForm(forms.Form):
     required_css_class = 'font-weight-bold'    
 
 class SoldForm(forms.Form):
-    sold = forms.BooleanField(label="Sold?")
+    sold = forms.BooleanField(label="No longer donating?")
+
+class ExpireRequestForm(forms.Form):
+    sold = forms.BooleanField(label="Don't need item anymore?")
+
+class RequestorMatch(forms.Form):
+    match = forms.BooleanField(label="Request this item now?")
+
+class DonorMatch(forms.Form):
+    match = forms.BooleanField(label="Donate this item now?")
+    value = forms.CharField(widget=forms.NumberInput(), label = "Estimated Donation Value")
 
 class CommentForm(forms.Form):
     comment = forms.CharField(widget=forms.Textarea, label="Add Comment")

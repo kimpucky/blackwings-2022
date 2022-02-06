@@ -37,9 +37,14 @@ class Category(models.Model):
      def __str__(self):
          return f"{self.category}"
 
+class RequestorCategory(models.Model):
+     category = models.CharField(max_length=64,default="Other")
+     def __str__(self):
+         return f"{self.category}"
+
 class Listing(models.Model):
     donor = models.ForeignKey(User, on_delete=models.CASCADE, related_name="donations")
-    title = models.CharField(max_length=64)
+    title = models.CharField(max_length=128)
     description = models.TextField()
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="items")
     initialprice = models.DecimalField(max_digits=16, decimal_places=2,default=0)
@@ -56,10 +61,10 @@ class Requesting(models.Model):
     requestor = models.ForeignKey(User, on_delete=models.CASCADE, related_name="requests")
     title = models.CharField(max_length=64)
     description = models.TextField()
-    requestorcategory = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="request_items")
+    requestorcategory = models.ForeignKey(RequestorCategory, on_delete=models.CASCADE, related_name="request_items")
     image_url = models.URLField(default="https://upload.wikimedia.org/wikipedia/commons/b/b1/Missing-image-232x150.png")
     sold = models.BooleanField(default=False)
-    price = models.DecimalField(max_digits=16, decimal_places=2,default=0)
+    price = models.DecimalField(max_digits=16, decimal_places=2,default=0,null=True)
     donor = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null= True, related_name="request_donor")
     creationdate = models.DateTimeField(default=datetime.datetime(2021, 9, 29, 1, 50, 16, 283956))
     enddate = models.DateTimeField(blank=True, null=True)

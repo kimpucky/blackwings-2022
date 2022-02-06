@@ -7,7 +7,9 @@ from .models import *
 admin.site.register(User)
 admin.site.register(Profile)
 admin.site.register(Listing)
+admin.site.register(Requesting)
 admin.site.register(Category)
+admin.site.register(RequestorCategory)
 admin.site.register(Bid)
 
 @admin.register(Watchlist)

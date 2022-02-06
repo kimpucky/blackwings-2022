@@ -27,7 +27,7 @@
                 </li>
                 <li class="nav-item">
                     <div class="dropdown">
-                        <button class="dropbtn">Category</button>
+                        <button class="dropbtn">Donation Category</button>
                         <div class="dropdown-content">
                             {%for category in categories%}
                             <a href="{% url 'category' category%} ">{{category}}</a>
@@ -35,6 +35,18 @@
                         </div>
                     </div>
                 </li>
+
+                <li class="nav-item">
+                    <div class="dropdown">
+                        <button class="dropbtn">Request Category</button>
+                        <div class="dropdown-content">
+                            {%for category in requestorcategory%}
+                            <a href="{% url 'requestorcategory' category%} ">{{category}}</a>
+                            {%endfor%}
+                        </div>
+                    </div>
+                </li>
+
                 {% if user.is_authenticated %}
                 <li class="nav-item">
                     <a class="nav-link" href="{% url 'donate' %}">Add Donation</a>
