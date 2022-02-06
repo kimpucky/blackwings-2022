@@ -82,7 +82,8 @@ class Bid(models.Model):
 
 class Comment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="comments")
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="comments",null=True)
+    requesting = models.ForeignKey(Requesting, on_delete=models.CASCADE, related_name="requestcomments",null=True)
     commentdate = models.DateTimeField()
     comment = models.TextField()
     def __str__(self):
@@ -90,4 +91,5 @@ class Comment(models.Model):
 
 class Watchlist(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE,null=True)
+    requesting = models.ForeignKey(Requesting, on_delete=models.CASCADE,null=True)

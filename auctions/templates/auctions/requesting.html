@@ -1,0 +1,128 @@
+{% extends "auctions/index.html" %}
+
+{% block body %}
+<div class="container-fluid">
+    <div class="text-center">
+        <h2>Listing: {{requesting.title}}</h2>
+    </div>
+
+    {%if requestor%}
+    <div class="text-center">
+        <h2>You won the auction!</h2>
+    </div>
+    {%endif%}
+
+    <div class="text-right">
+        {% if user.is_authenticated%}
+        {% if not requesting.id in watchlistIDs %}
+        <h5><a href="{% url 'watchlist' requesting.id%}"> Add to Watchlist </a></h5>
+        {%else%}
+        <h5><a href="{% url 'watchlist' requesting.id%}"> Remove from Watchlist </a> </h5>
+        {% endif %}
+        {% endif %}
+    </div>
+
+
+    <div>
+        <h4>Image:</h4>
+        <ul><img class="listingImage" src="{{requesting.image_url}}"></ul>
+    </div>
+
+    <div>
+        <h4>Description:</h4>
+        <ul>{{requesting.description}}</ul>
+    </div>
+
+    {% if not isOwner and not anonymous and not requesting.sold%}
+    {% if bidform.errors %}
+    <div class="alert alert-danger">{{errors}}</div>
+    {%endif%}
+
+    <div>
+        <form action="{% url 'requesting' requesting.id%}" method="post">
+            {% csrf_token %}
+            {% for field in bidform %}
+            <h4> {{ field.label_tag }} </h4>
+            <div class="col-3 soldButton align-self-center"> {{ field }} </div>
+            <div> <input type="submit" name="bidsubmit" value="Submit" class="btn btn-link">
+            </div>
+        </form>
+    </div>
+    {% endfor %}
+    {%endif%}
+
+    {% if anonymous and not requesting.sold%}
+    <div>
+        <a href="{% url 'login' %}">
+            <h4>Log in to donate</h4>
+        </a>
+    </div>
+    {%endif%}
+
+
+    <div>
+        <h4>Requestor:</h4>
+        <ul>Requested by {{requesting.requestor}} at {{requesting.creationdate}}</ul>
+    </div>
+
+    {%if requesting.sold%}
+    <div>
+        <h4>Requestor:</h4>
+        {%if requesting.donor == None%}
+        <ul>This item was removed by the requestor. The request closed at {{requesting.enddate}}</ul>
+        {%else%}
+        <ul>This item was donated by {{requesting.donor}}. The request closed at {{requesting.enddate}}
+        </ul>
+        {%endif%}
+    </div>
+    {%endif%}
+
+    {%if not requesting.sold%}
+    <div class="row justify-content-left">
+        {% if isOwner %}
+        <form action="{% url 'requesting' requesting.id%}" method="post" class="justify-content-left">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="col-3 align-self-center my-0">
+                <h4>{{ field.label_tag }} </h4>
+            </div>
+            <div class="col-5 soldButton align-self-center">
+                {{ field }}
+            </div>
+            {% endfor %}
+            <div class="col-2 align-self-center m-0 p-0">
+                <input type="submit" name="soldsubmit" class="btn btn-link">
+            </div>
+        </form>
+        {%endif%}
+    </div>
+    {%endif%}
+
+    <div>
+        <h4>Comments:</h4>
+        {%for comment in comments%}
+        <ul>{{comment.user}} wrote at {{comment.commentdate}}:
+            <ul>{{comment.comment}}</ul>
+        </ul>
+
+        {%endfor%}
+    </div>
+
+    {%if not anonymous%}
+    <form action="{% url 'requesting' requesting.id%}" method="post" class="comment">
+        {% csrf_token %}
+        {% for field in commentform %}
+        <div>
+            <h4>{{ field.label_tag }} </h4>
+            <div class="textarea">
+                {{ field }} </div>
+        </div>
+        {% endfor %}
+        <div class="text-right"><input type="submit" name="commentsubmit" class="btn btn-link"></div>
+    </form>
+    {%endif%}
+
+
+</div>
+
+{%endblock%}

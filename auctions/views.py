@@ -26,7 +26,7 @@ def get_request_categories():
     requestorcategories = [c[0] for c in requestorcategories]
     return requestorcategories
 
-def index(request):
+def indexlisting(request):
     try:
         watchlist = Watchlist.objects.filter(user=request.user)
     except:
@@ -35,10 +35,27 @@ def index(request):
 
     return render(request, "auctions/index.html", {
         "listings" : Listing.objects.filter(sold=False),
+        "requestings" : Requesting.objects.filter(sold=False),
         "categories" : get_categories(),
         "requestorcategory": get_request_categories(),
         "watchlistIDs" : watchlistIDs
     })
+
+def indexrequesting(request):
+    try:
+        watchlist = Watchlist.objects.filter(user=request.user)
+    except:
+        watchlist = ''
+    watchlistIDs = [l.listing.id for l in watchlist]
+
+    return render(request, "auctions/indexrequesting.html", {
+        "listings" : Listing.objects.filter(sold=False),
+        "requestings" : Requesting.objects.filter(sold=False),
+        "categories" : get_categories(),
+        "requestorcategory": get_request_categories(),
+        "watchlistIDs" : watchlistIDs
+    })
+
 
 def category(request, category):
     category = Category.objects.get(category=category)
@@ -48,7 +65,7 @@ def category(request, category):
         watchlist = ''
     watchlistIDs = [l.listing.id for l in watchlist]
     listings = category.items.all().filter(sold=False)
-    return render(request, "auctions/index.html", {
+    return render(request, "auctions/indexlisting.html", {
         "listings" : listings,
         "categories" : get_categories(),
         "requestorcategory" : get_request_categories(),
@@ -64,9 +81,9 @@ def requestorcategory(request, category):
         watchlist = ''
     watchlistIDs = [l.listing.id for l in watchlist]
     requestings = category.request_items.all().filter(sold=False)
-    return render(request, "auctions/index.html", {
-        "listings" : requestings,
-        "requestorcategory" : get_request_categories(),
+    return render(request, "auctions/indexrequesting.html", {
+        "requestings" : requestings,
+        "requestorcategories" : get_request_categories(),
         "categories" : get_categories(),
         "category" : category,
         "watchlistIDs" : watchlistIDs
@@ -367,6 +384,91 @@ def listing(request, listing_id):
                 "requestor" : requestor
                 })
 
+def requesting(request, requesting_id):
+    donor=False
+    requesting = Requesting.objects.get(id=requesting_id)
+    comments = requesting.requestcomments.all().order_by("commentdate")
+    form = SoldForm()
+    commentform = CommentForm()
+    try:
+        watchlist = Watchlist.objects.filter(user=request.user)
+    except:
+        watchlist = ''
+    watchlistIDs = [l.listing.id for l in watchlist]
+    if requesting.sold == True:
+        if requesting.donor == request.user:
+            requestor = True
+        else:
+            requestor = False
+
+    #if user is not logged in, shows text that user needs to be logged in to bid
+    if request.user.is_authenticated == False:
+        anonymous = True
+        return render(request, "auctions/requesting.html", {
+                "categories" : get_categories(),
+                "requestorcategory" : get_request_categories(),
+                "requesting" : requesting,
+                "anonymous" : anonymous,
+                "comments" : comments
+            })
+    #else authenticated users, split into owner of listing and not owner of listing
+    else:
+        if request.user == requesting.requestor:
+            isOwner = True
+        else:
+            isOwner = False
+        if (request.method == "POST" and 'commentsubmit' in request.POST):
+            commentform = CommentForm(request.POST)
+            commenttext = str(commentform.data["comment"])
+            user = request.user
+            newcomment = Comment(user=user, requesting=requesting, comment=commenttext, commentdate=timezone.localtime())
+            newcomment.save()
+            commentform = CommentForm()
+        
+        #if listing is viewed by the owner, show sold checkbox to take listing off the market but no bidding
+        if isOwner:
+            if (request.method == "POST" and 'soldsubmit' in request.POST):
+                form = ExpireRequestForm(request.POST)
+                soldValue = form.data["sold"]
+                if soldValue == 'on':
+                    sold = True
+                requesting.sold = sold
+                requesting.enddate = timezone.localtime()
+                requesting.save()
+                return render(request, "auctions/requesting.html", {
+                    "categories" : get_categories(),
+                    "requestorcategory" : get_request_categories(),
+                    "requesting" : requesting,
+                    "isOwner": isOwner,
+                    "watchlistIDs" : watchlistIDs,
+                    "commentform" : commentform,
+                    "comments" : comments,
+                    "requestor" : requestor
+                })
+            else:
+                form = ExpireRequestForm()
+                return render(request, "auctions/requesting.html", {
+                    "categories" : get_categories(),
+                    "requestorcategory" : get_request_categories(),
+                    "requesting" : requesting,
+                    "form" : form,
+                    "isOwner": isOwner,
+                    "watchlistIDs" : watchlistIDs,
+                    "commentform" : commentform,
+                    "comments" : comments,
+                })
+        #if requesting is viewed by a user who is not the donor, show request options
+        else:
+            anonymous = False
+            return render(request, "auctions/requesting.html", {
+                "categories" : get_categories(),
+                "requestorcategory" : get_request_categories(),
+                "requesting" : requesting,
+                "watchlistIDs" : watchlistIDs,
+                "commentform" : commentform,
+                "comments" : comments,
+                "requestor" : requestor
+                })
 
 def findPrice(listing_id):
     listing = Listing.objects.get(id=listing_id)
