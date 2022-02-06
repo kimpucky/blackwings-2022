@@ -1,0 +1,43 @@
+{% extends "auctions/index.html" %}
+
+{% block body %}
+
+<h2>Fill out your profile:</h2>
+
+<div class="container">
+
+    <div class="row">
+
+<form action="{% url 'profile' %}" method="post">
+    {% csrf_token %}
+
+    <!-- errors -->
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger">{{error}}</div>
+    {% endif %}
+</div>
+
+
+{% if message %}
+<div>{{ message }}</div>
+{% endif %}
+    
+    {% for field in p_reg_form %}
+    <div class="row center">
+        <div class="col-2">
+            {{ field.label_tag }}
+        </div>
+
+        <div class="col-10">
+            {{ field }}
+        </div>
+    </div>
+    {% endfor %}
+
+    <div class="col py-2 text-center">
+        <input type="submit" class="btn btn-primary "> </form>
+    </div>
+</div>
+</div>
+
+{% endblock %}

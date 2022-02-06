@@ -8,6 +8,9 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.forms import ModelForm
 from django import forms
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.messages import constants as messages
+
 
 
 from .models import *
@@ -74,6 +77,39 @@ def logout_view(request):
     logout(request)
     return HttpResponseRedirect(reverse("index"))
 
+def profile(request):
+    user = request.user
+    if user.profile == None:
+        if request.method == 'POST':
+            p_reg_form = ProfileRegisterForm(request.POST)
+            if p_reg_form.is_valid():
+                firstname=p_reg_form.data['firstname']
+                lastname=p_reg_form.data['lastname']
+                school=p_reg_form.data['school']
+                address1=p_reg_form.data['address1']
+                address2=p_reg_form.data['address2']
+                city=p_reg_form.data['city']
+                state=p_reg_form.data['state']
+                zipcode=p_reg_form.data['zipcode']
+                is_donor= p_reg_form.cleaned_data['is_donor']
+                is_requestor= p_reg_form.cleaned_data['is_requestor']
+                profile=Profile(username = user.username,firstname=firstname, lastname=lastname, school=school,address1=address1,address2=address2,city=city, state=state,zipcode=zipcode,is_donor=is_donor, is_requestor=is_requestor)
+                profile.save()
+                user.profile = profile
+                user.save()
+                return HttpResponseRedirect(reverse("index"))
+        else:
+            p_reg_form = ProfileRegisterForm()
+        context = {
+        'p_reg_form': p_reg_form}
+        return render(request, 'auctions/profile.html', context)
+    else:
+        u = user.profile
+        p_reg_form = ProfileRegisterForm(instance=u)
+        context = {
+            'p_reg_form': p_reg_form}
+        return render(request, 'auctions/profile.html', context)
+
 
 def register(request):
     if request.method == "POST":
@@ -99,7 +135,7 @@ def register(request):
                 "categories" : get_categories()
             })
         login(request, user)
-        return HttpResponseRedirect(reverse("index"))
+        return HttpResponseRedirect('profile')
     else:
         return render(request, "auctions/register.html", {
             "categories" : get_categories()
@@ -262,8 +298,6 @@ def listing(request, listing_id):
                 })
 
 
-
-
 def findPrice(listing_id):
     listing = Listing.objects.get(id=listing_id)
     donorPrice = listing.price
@@ -296,3 +330,8 @@ class SoldForm(forms.Form):
 
 class CommentForm(forms.Form):
     comment = forms.CharField(widget=forms.Textarea, label="Add Comment")
+
+class ProfileRegisterForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ['firstname','lastname','school','address1','address2','city', 'state', 'zipcode', 'is_donor','is_requestor']
